@@ -1,0 +1,45 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ücretsiz Üye Ol · Arel ERP</title><link rel="stylesheet" href="style.css">
+<style>
+form{max-width:420px;margin-top:20px}label{display:block;font-size:13px;color:#64748b;margin:14px 0 6px}
+input{width:100%;box-sizing:border-box;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;font-size:16px;color:#0f172a}
+button{width:100%;margin-top:20px;background:#2563eb;color:#fff;border:0;border-radius:12px;padding:15px;font-size:16px;font-weight:800;cursor:pointer}
+button:disabled{opacity:.6}.msg{margin-top:16px;padding:12px 14px;border-radius:12px;font-size:15px;display:none}
+.ok{background:#dcfce7;color:#166534}.err{background:#fee2e2;color:#991b1b}
+</style></head><body>
+<nav><a href="index.html">Arel ERP</a><a href="kayit.html">Üye Ol</a><a href="gizlilik.html">Gizlilik</a><a href="kullanim-kosullari.html">Kullanım Koşulları</a><a href="destek.html">Destek</a></nav>
+<h1>Ücretsiz Üye Ol</h1><p class="muted">Firmanı aç, ekibini ekle. Arel ERP ücretsizdir.</p>
+<form id="f" novalidate>
+<label for="company">Firma adı</label><input id="company" autocomplete="organization" required>
+<label for="name">Ad soyad</label><input id="name" autocomplete="name" required>
+<label for="email">E-posta</label><input id="email" type="email" autocomplete="email" autocapitalize="none" required>
+<label for="password">Şifre</label><input id="password" type="password" autocomplete="new-password" placeholder="en az 6 karakter" required>
+<button id="b" type="submit">Üye Ol</button>
+<p class="muted">Üye olarak <a href="kullanim-kosullari.html">kullanım koşullarını</a> ve <a href="gizlilik.html">gizlilik politikasını</a> kabul etmiş olursunuz.</p>
+<div id="m" class="msg" role="status"></div>
+</form>
+<footer>Phiba Pharma Arge Sanayi ve Ticaret Limited Şirketi</footer>
+<script>
+var URL_ = "https://evyuyzrksyezxiulvrec.supabase.co", KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2eXV5enJrc3llenhpdWx2cmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyNDg3MjksImV4cCI6MjEwOTgyNDcyOX0.NV6vZNLh4sFrIUm8AhzivMrmZLVhqz22od4AmWhfpAM";
+var f = document.getElementById('f'), b = document.getElementById('b'), m = document.getElementById('m');
+function show(text, ok) { m.textContent = text; m.className = 'msg ' + (ok ? 'ok' : 'err'); m.style.display = 'block'; }
+f.addEventListener('submit', function (e) {
+  e.preventDefault();
+  var company = f.company.value.trim(), name = f.name.value.trim(), email = f.email.value.trim().toLowerCase(), password = f.password.value;
+  if (!company) return show('Firma adını girin.');
+  if (!name) return show('Ad soyad girin.');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return show('Geçerli bir e-posta girin.');
+  if (password.length < 6) return show('Şifre en az 6 karakter olmalı.');
+  b.disabled = true; b.textContent = 'Oluşturuluyor…';
+  fetch(URL_ + '/auth/v1/signup', { method: 'POST', headers: { 'apikey': KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email, password: password, data: { company_name: company, full_name: name } }) })
+    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+    .then(function (x) {
+      if (x.ok && (x.d.access_token || x.d.user || x.d.id)) { f.reset(); b.style.display = 'none'; show('Hesabınız açıldı. Arel ERP uygulamasını açıp bu e-posta ve şifreyle giriş yapabilirsiniz.', true); return; }
+      var t = (x.d.msg || x.d.message || x.d.error_description || '') + ' ' + (x.d.error_code || '');
+      show(/already|exists/i.test(t) ? 'Bu e-posta ile bir hesap zaten var. Uygulamadan giriş yapmayı deneyin.' : 'Üyelik oluşturulamadı: ' + t.trim());
+      b.disabled = false; b.textContent = 'Üye Ol';
+    })
+    .catch(function () { show('Bağlantı kurulamadı. İnternetinizi kontrol edip tekrar deneyin.'); b.disabled = false; b.textContent = 'Üye Ol'; });
+});
+</script>
+</body></html>
